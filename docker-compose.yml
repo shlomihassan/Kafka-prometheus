@@ -1,0 +1,179 @@
+version: '3.1'
+
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
+networks:
+  kafka:
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.1.0
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9090:9090
+    links:
+      - kafka-exporter
+    networks:
+      - kafka
+    depends_on:
+      - kafka-exporter
+    restart: always
+
+  grafana:
+    image: grafana/grafana
+    depends_on:
+      - prometheus
+    ports:
+     - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ./grafana/config.monitoring
+    networks:
+      - kafka
+    restart: always
+  
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    ports:
+      - 9308:9308
+    entrypoint:
+        - /bin/kafka_exporter
+        - --kafka.server=kafka-1:19092
+        - --kafka.server=kafka-2:29092
+        - --kafka.server=kafka-3:39092   
+    links:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    networks:
+      - kafka
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    restart: always
+ 
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+     - 22181:22181 
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 22181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper-1:22888:23888;zookeeper-2:32888:33888;zookeeper-3:42888:43888
+    networks:
+      - kafka
+  
+  zookeeper-2:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+     - 32181:32181
+    environment:
+      ZOOKEEPER_SERVER_ID: 2
+      ZOOKEEPER_CLIENT_PORT: 32181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper-1:22888:23888;zookeeper-2:32888:33888;zookeeper-3:42888:43888
+    networks:
+      - kafka
+
+  zookeeper-3:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+     - 42181:42181
+    environment:
+      ZOOKEEPER_SERVER_ID: 3
+      ZOOKEEPER_CLIENT_PORT: 42181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper-1:22888:23888;zookeeper-2:32888:33888;zookeeper-3:42888:43888
+    networks:
+      - kafka
+  
+  kafka-1:
+    hostname: kafka-1
+    ports:
+     - 19092:19092
+     - 5556:5556
+    build: ./kafka-prometheus
+    volumes:
+      - $PWD/jmx_exporter/config.yml:/opt/jmx_exporter/config.yml
+    links:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:22181,zookeeper-2:32181,zookeeper-3:42181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:19092
+      EXTRA_ARGS: "-javaagent:/usr/local/share/jars/jmx_prometheus_javaagent-0.10.jar=5556:/opt/jmx_exporter/config.yml "
+    networks:
+      - kafka
+
+  kafka-2:
+    hostname: kafka-2
+    ports:
+     - 29092:29092
+     - 5557:5557
+    build: ./kafka-prometheus
+    volumes:
+      - $PWD/jmx_exporter/config.yml:/opt/jmx_exporter/config.yml
+    links:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:22181,zookeeper-2:32181,zookeeper-3:42181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:29092
+      EXTRA_ARGS: "-javaagent:/usr/local/share/jars/jmx_prometheus_javaagent-0.10.jar=5557:/opt/jmx_exporter/config.yml "
+    networks:
+      - kafka
+  
+  kafka-3:
+    hostname: kafka-3
+    ports:
+     - 39092:39092
+     - 5558:5558
+    build: ./kafka-prometheus
+    volumes:
+      - $PWD/jmx_exporter/config.yml:/opt/jmx_exporter/config.yml
+    links:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:22181,zookeeper-2:32181,zookeeper-3:42181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:39092
+      EXTRA_ARGS: "-javaagent:/usr/local/share/jars/jmx_prometheus_javaagent-0.10.jar=5558:/opt/jmx_exporter/config.yml "
+    networks:
+      - kafka
