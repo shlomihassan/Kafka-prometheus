@@ -55,7 +55,16 @@ Check kafka_topic_partition_under_replicated_partition metric
 	Topic: test_kafka_2	Partition: 3	Leader: 1	Replicas: 1,2	Isr: 1
 ```
 
-Kafka is not self healing.... if we want to repair that we need to issue the following command -
+Kafka is not self healing.... if we want to repair that we need to create a JSON reassignment file - 
+```
+{"version":1,
+ "partitions":[{"topic":"test_kafka_2","partition":0,"replicas":[1,3]},
+               {"topic":"test_kafka_2","partition":1,"replicas":[1,3]},
+               {"topic":"test_kafka_2","partition":2,"replicas":[1,3]},
+               {"topic":"test_kafka_2","partition":3,"replicas":[1,3]}]
+}
+```
+And then issue the following command -
 
 ```
 ./kafka-reassign-partitions.sh --zookeeper localhost:22181 --reassignment-json-file reassignment.json --execute
