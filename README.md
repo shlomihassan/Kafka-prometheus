@@ -27,7 +27,7 @@ Check kafka_topic_partition_under_replicated_partition metric again
 Kafka_topic_partition_under_replicated_partition spiked (one node is missing)
 
 ```
-docker-compose -f docker-compose-new.yml up -d
+docker-compose -f docker-compose.yml up -d
 ```
 
 Check kafka_topic_partition_under_replicated_partition metric again
