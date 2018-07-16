@@ -9,6 +9,7 @@ networks:
 
 services:
   prometheus:
+    container_name: prometheus
     image: prom/prometheus:v2.1.0
     volumes:
       - ./prometheus/:/etc/prometheus/
@@ -29,6 +30,7 @@ services:
     restart: always
 
   grafana:
+    container_name: grafana
     image: grafana/grafana
     depends_on:
       - prometheus
@@ -44,6 +46,7 @@ services:
     restart: always
   
   kafka-exporter:
+    container_name: kafka-exporter
     image: danielqsj/kafka-exporter:latest
     ports:
       - 9308:9308
@@ -65,6 +68,7 @@ services:
     restart: always
  
   zookeeper-1:
+    container_name: zookeeper-1
     image: confluentinc/cp-zookeeper:latest
     ports:
      - 22181:22181 
@@ -79,6 +83,7 @@ services:
       - kafka
   
   zookeeper-2:
+    container_name: zookeeper-2
     image: confluentinc/cp-zookeeper:latest
     ports:
      - 32181:32181
@@ -93,6 +98,7 @@ services:
       - kafka
 
   zookeeper-3:
+    container_name: zookeeper-3
     image: confluentinc/cp-zookeeper:latest
     ports:
      - 42181:42181
@@ -107,6 +113,7 @@ services:
       - kafka
   
   kafka-1:
+    container_name: kafka-1
     hostname: kafka-1
     ports:
      - 19092:19092
@@ -131,6 +138,7 @@ services:
       - kafka
 
   kafka-2:
+    container_name: kafka-2
     hostname: kafka-2
     ports:
      - 29092:29092
@@ -155,6 +163,7 @@ services:
       - kafka
   
   kafka-3:
+    container_name: kafka-3
     hostname: kafka-3
     ports:
      - 39092:39092
