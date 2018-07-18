@@ -50,12 +50,12 @@ docker kill kafka-2
 
 Check kafka_topic_partition_under_replicated_partition metric
 ```
-./kafka-topics.sh --describe --zookeeper localhost:22181 --topic test_kafka_2
- Topic:test_kafka_2	PartitionCount:4	ReplicationFactor:2	Configs:retention.ms=604800000
-	Topic: test_kafka_2	Partition: 0	Leader: 1	Replicas: 1,2	Isr: 1
-	Topic: test_kafka_2	Partition: 1	Leader: 1	Replicas: 1,2	Isr: 1
-	Topic: test_kafka_2	Partition: 2	Leader: 1	Replicas: 1,2	Isr: 1
-	Topic: test_kafka_2	Partition: 3	Leader: 1	Replicas: 1,2	Isr: 1
+./kafka-topics.sh --describe --zookeeper localhost:22181 --topic test_kafka_1
+ Topic:test_kafka_1	PartitionCount:4	ReplicationFactor:2	Configs:retention.ms=604800000
+	Topic: test_kafka_1	Partition: 0	Leader: 1	Replicas: 1,2	Isr: 1
+	Topic: test_kafka_1	Partition: 1	Leader: 1	Replicas: 1,2	Isr: 1
+	Topic: test_kafka_1	Partition: 2	Leader: 1	Replicas: 1,2	Isr: 1
+	Topic: test_kafka_1	Partition: 3	Leader: 1	Replicas: 1,2	Isr: 1
 ```
 
 Kafka is not self healing.... if we want to repair that we need to create a JSON reassignment file - 
